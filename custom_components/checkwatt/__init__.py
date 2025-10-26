@@ -7,7 +7,7 @@ import logging
 import random
 from typing import TypedDict
 
-from pycheckwatt import CheckwattManager, CheckWattRankManager
+from pycheckwatt import CheckwattManager, CheckWattRankManager, CheckwattAuthInfo
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
@@ -138,7 +138,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         status = None
         stored_items = 0
         total_items = 0
-        async with CheckwattManager(username, password, INTEGRATION_NAME) as cw:
+        async with CheckwattManager(username, password, coordinator.auth_info, INTEGRATION_NAME) as cw:
             try:
                 # Login to EnergyInBalance
                 if await cw.login():
@@ -217,7 +217,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         password = entry.data.get(CONF_PASSWORD)
         cwr_name = entry.options.get(CONF_CWR_NAME)
         status = None
-        async with CheckwattManager(username, password, INTEGRATION_NAME) as cw:
+        async with CheckwattManager(username, password, coordinator.auth_info, INTEGRATION_NAME) as cw:
             try:
                 # Login to EnergyInBalance
                 if await cw.login():
@@ -340,6 +340,7 @@ class CheckwattCoordinator(DataUpdateCoordinator[CheckwattResp]):
         self.fcrd_daily_net_average = None
         self.fcrd_year_net_revenue = None
         self.monthly_grid_peak_power = None
+        self.auth_info = CheckwattAuthInfo()
 
     @property
     def entry_id(self) -> str:
@@ -358,7 +359,7 @@ class CheckwattCoordinator(DataUpdateCoordinator[CheckwattResp]):
             cwr_name = self._entry.options.get(CONF_CWR_NAME)
 
             async with CheckwattManager(
-                username, password, INTEGRATION_NAME
+                username, password, self.auth_info, INTEGRATION_NAME
             ) as cw_inst:
                 if not await cw_inst.login():
                     _LOGGER.error("Failed to login, abort update")
