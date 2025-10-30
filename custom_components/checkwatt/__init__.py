@@ -7,7 +7,7 @@ import logging
 import random
 from typing import TypedDict
 
-from pycheckwatt import CheckwattManager, CheckWattRankManager, CheckwattAuthInfo
+from pycheckwatt import CheckwattManager, CheckWattRankManager, CheckwattStateInfo
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
@@ -340,7 +340,7 @@ class CheckwattCoordinator(DataUpdateCoordinator[CheckwattResp]):
         self.fcrd_daily_net_average = None
         self.fcrd_year_net_revenue = None
         self.monthly_grid_peak_power = None
-        self.auth_info = CheckwattAuthInfo()
+        self.state_info = CheckwattStateInfo()
 
     @property
     def entry_id(self) -> str:
@@ -359,7 +359,7 @@ class CheckwattCoordinator(DataUpdateCoordinator[CheckwattResp]):
             cwr_name = self._entry.options.get(CONF_CWR_NAME)
 
             async with CheckwattManager(
-                username, password, self.auth_info, INTEGRATION_NAME
+                username, password, self.state_info, INTEGRATION_NAME
             ) as cw_inst:
                 if not await cw_inst.login():
                     _LOGGER.error("Failed to login, abort update")
